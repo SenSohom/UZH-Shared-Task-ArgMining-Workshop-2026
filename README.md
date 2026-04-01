@@ -167,28 +167,5 @@ Each prediction file follows the official shared task schema:
 | Triangulation      | `modifying`    | Conditions, exceptions, or scope refinement |
 
 ---
-
-## Repository Structure
-
-```
-├── claims_pipeline.py   # Main pipeline (classification + relation prediction)
-├── config.py            # Models, paths, prompts, tag vocabulary loader
-├── evaluate.py          # LLM-as-a-Judge + F1 evaluation (System B)
-├── evaluate_sysA.py     # Evaluation for System A predictions
-└── paper/               # ACL-format system paper (LaTeX)
-```
-
----
-
-## Citation
-
-If you use this code, please cite the shared task:
-
-```bibtex
-@inproceedings{uzh2026argmining,
-  title     = {UZH ArgMining 2026 Shared Task},
-  booktitle = {Proceedings of the ArgMining Workshop 2026},
-  year      = {2026}
-}
 ```
 
