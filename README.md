@@ -1,8 +1,8 @@
-# ArgMining 2026 — Generative Claim-Evidence Pipeline
+# Evident — Reasoning Probes for Argumentation Mining in UN Resolutions
 
-**System B** submission for the [UZH ArgMining 2026 Shared Task](https://github.com/ZurichNLP/ArgMining-2026-UZH-Shared-Task) — recovering argumentative structure from UN/UNESCO resolutions.
+Team **POINTERS** submission for the [UZH ArgMining 2026 Shared Task](https://github.com/ZurichNLP/ArgMining-2026-UZH-Shared-Task) — recovering argumentative structure from UN/UNESCO resolutions.
 
-The pipeline adapts a **claim-evidence-strategy framework** to resolution analysis, classifying paragraphs and predicting argumentative relations with explicit reasoning traces (`think` fields). Generation runs fully locally using **Qwen3-8B-GGUF (Q8_0)** via `llama-cpp-python`; no cloud API is needed to run the pipeline.
+The pipeline applies the **Evident Framework** to resolution analysis: preambular paragraphs are treated as evidence and operative paragraphs as the claims they support, with four named reasoning strategies bridging the two. Structured **reasoning probes** embedded in every prompt require the model to quote verbatim evidence, name the logical mechanism, and explicitly rule out an alternative — making each decision grounded and falsifiable. Generation runs fully locally using **Qwen3-8B-GGUF (Q8_0)** via `llama-cpp-python`; no cloud API is needed.
 
 | Split | LLM-Judge Score |
 |-------|----------------|
@@ -25,18 +25,18 @@ The pipeline adapts a **claim-evidence-strategy framework** to resolution analys
 ## How It Works
 
 **Step 1 — Paragraph Classification**
-- Classifies each paragraph as `preambular` (contextual/rationale) or `operative` (directive)
+- Classifies each paragraph as `preambular` (evidence/rationale) or `operative` (directive/claim)
 - Assigns education-dimension tags from a 126-code controlled vocabulary
-- Uses a sliding window of ±21 paragraphs centred on the target for context
-- Produces a 4-sentence structured `think` field grounded in verbatim quotes
+- Uses a sliding context window of ~21 surrounding paragraphs for local context
+- Requires a 4-part reasoning probe: opening keyword quote, tag justification phrase, dominant strategy, and structural role in the resolution's argument
 
 **Step 2 — Relation Prediction**
-- Retrieves top-15 semantically related candidate paragraphs via `sentence-transformers`
+- Retrieves top-15 semantically related candidate paragraphs via `sentence-transformers` (`all-MiniLM-L6-v2`)
 - Predicts argumentative relations: `supporting`, `complemental`, `contradictive`, `modifying`
-- Each relation maps to a reasoning strategy: Causal / Corroboration / Contrastive / Triangulation
-- Produces a 5-sentence `think` field with quoted evidence and an explicitly rejected alternative
+- Each relation is grounded in a named Evident Framework strategy: Causal / Corroboration / Contrastive / Triangulation
+- Requires a 5-part reasoning probe: quoted phrase from source, quoted phrase from target, labelled relation with justification, strategy and its logical mechanism, and one explicitly rejected alternative
 
-Non-argumentative paragraphs (no tags assigned in Step 1) are filtered out before Step 2.
+Non-argumentative paragraphs (headers, date stamps, institutional name lines) are flagged in Step 1 and skipped in Step 2.
 
 Qwen3's internal chain-of-thought is suppressed via the `/no_think` prefix and `<think>` tag stripping, so outputs are clean JSON only.
 
@@ -156,14 +156,11 @@ Each prediction file follows the official shared task schema:
 
 ---
 
-## Reasoning Strategy → Relation Type Mapping
+## Evident Framework — Strategy to Relation Mapping
 
 | Reasoning Strategy | Relation Type   | Description |
 |--------------------|-----------------|-------------|
-| Causal             | `supporting`    | Premise → directive justification |
-| Corroboration      | `complemental`  | Same claim, different evidence/actors |
+| Causal             | `supporting`    | Premise leads to or justifies a directive |
+| Corroboration      | `complemental`  | Independent evidence converges on the same claim |
 | Contrastive        | `contradictive` | Opposing or limiting positions |
 | Triangulation      | `modifying`     | Conditions, exceptions, or scope refinement |
-
----
-```
