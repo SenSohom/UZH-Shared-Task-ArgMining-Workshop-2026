@@ -106,7 +106,7 @@ def _chat(system: str, user: str, max_tokens: int) -> str:
             {"role": "user",   "content": f"/no_think\n{user}"},
         ],
         max_tokens=max_tokens,
-        temperature=0.0,
+        temperature=0.2,
         repeat_penalty=1.1,
     )
     return _extract_text(response)
